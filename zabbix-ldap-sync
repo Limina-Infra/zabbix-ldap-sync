@@ -737,7 +737,7 @@ class ZabbixLDAPConf(object):
 
         """
         parser = ConfigParser.ConfigParser()
-        parser.read(self.config)
+        parser.readfp(self.config)
 
         try:
             self.ldap_type          = self.try_get_item(parser, 'ldap', 'type', None)
