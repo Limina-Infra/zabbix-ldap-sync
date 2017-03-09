@@ -307,7 +307,7 @@ class LDAPConn(object):
             The user's given name attribute
 
         """
-        attrlist = ['givenName']
+        attrlist = ['givenname']
 
         result = self.conn.search_s(base=dn,
                                     scope=ldap.SCOPE_BASE,
@@ -318,7 +318,7 @@ class LDAPConn(object):
 
         dn, data = result.pop()
 
-        name = data.get('givenName')
+        name = data.get('givenname')
 
         if not name:
             return None
