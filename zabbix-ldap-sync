@@ -613,7 +613,7 @@ class ZabbixConn(object):
         for eachGroup in ldap_groups:
             ldap_users = ldap_conn.get_group_members(eachGroup)
             user_opt['type'] += 1
-            
+
             # Do nothing if LDAP group contains no users and "--delete-orphans" is not specified
             if not ldap_users and not deleteorphans:
                 continue
@@ -891,11 +891,12 @@ def main_redo():
     parser.add_argument('--user', help='Usuário, def.: Admin', default='Admin')
     parser.add_argument('--password', help='Senha, def.: zabbix', default='zabbix')
     parser.add_argument('url', help='Ex.: http://zabbix.com ou http://10.99.0.120')
-    parser.add_argument('ldap_uri')
-    parser.add_argument('base')
-    parser.add_argument('bind_user')
-    parser.add_argument('bind_pass')
-    parser.add_argument('groups', help='Groups of users, in this order: users, admins, superadmins')
+    requiredNamed = parser.add_argument_group('required named arguments')
+    requiredNamed.add_argument('-l', '--ldap_uri', required=True, help='LDAP server address')
+    requiredNamed.add_argument('-b', '--base', required=True, help='Base CN')
+    requiredNamed.add_argument('-u', '--bind_user', required=True, help='LDAP bind user')
+    requiredNamed.add_argument('-p', '--bind_pass', required=True, help='Bind user\'s password')
+    requiredNamed.add_argument('-g', '--groups', required=True, help='Groups of users to import to Zabbix, in this order: users, admins, superadmins')
 
     args = parser.parse_args()
 
