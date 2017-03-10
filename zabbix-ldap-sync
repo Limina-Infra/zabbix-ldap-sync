@@ -42,11 +42,6 @@ from docopt import docopt
 import argparse
 import StringIO
 
-uri = 'ldap://10.51.47.126:389/'
-base = 'cn=PERFIS,dc=network,dc=ctbc'
-bind_user = 'cn=bindzabbixmetro,ou=ESPECIAL,cn=Users,dc=network,dc=ctbc'
-bind_pass = 'b1ndz4bb1x@m3tr0'
-groups = 'REDE_METRO_USUARIO'
 
 class LDAPConn(object):
     """
@@ -894,6 +889,11 @@ def main_redo():
     parser.add_argument('--user', help='Usuário, def.: Admin', default='Admin')
     parser.add_argument('--password', help='Senha, def.: zabbix', default='zabbix')
     parser.add_argument('url', help='Ex.: http://zabbix.com ou http://10.99.0.120')
+    parser.add_argument('ldap_uri')
+    parser.add_argument('base')
+    parser.add_argument('bind_user')
+    parser.add_argument('bind_pass')
+    parser.add_argument('groups', help='Groups of users, in this order: users, admins, superadmins')
 
     args = parser.parse_args()
 
@@ -901,11 +901,11 @@ def main_redo():
 
     _conf.add_section('ldap')
     _conf.set('ldap', 'type', 'activedirectory')
-    _conf.set('ldap', 'uri', uri)
-    _conf.set('ldap', 'base', base)
-    _conf.set('ldap', 'binduser', bind_user)
-    _conf.set('ldap', 'bindpass', bind_pass)
-    _conf.set('ldap', 'groups', groups)
+    _conf.set('ldap', 'uri', args.ldap_uri)
+    _conf.set('ldap', 'base', args.base)
+    _conf.set('ldap', 'binduser', args.bind_user)
+    _conf.set('ldap', 'bindpass', args.bind_pass)
+    _conf.set('ldap', 'groups', args.groups)
 
     _conf.add_section('zabbix')
     _conf.set('zabbix', 'server', args.url)
