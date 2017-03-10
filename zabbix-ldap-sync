@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# encoding: utf-8
 #
 # Copyright (c) 2013-2014 Marin Atanasov Nikolov <dnaeon@gmail.com>
 # All rights reserved.
@@ -38,6 +39,7 @@ import ldap
 import ldap.filter
 from pyzabbix import ZabbixAPI, ZabbixAPIException
 from docopt import docopt
+import argparse
 import StringIO
 
 uri = 'ldap://10.51.47.126:389/'
@@ -45,10 +47,6 @@ base = 'cn=PERFIS,dc=network,dc=ctbc'
 bind_user = 'cn=bindzabbixmetro,ou=ESPECIAL,cn=Users,dc=network,dc=ctbc'
 bind_pass = 'b1ndz4bb1x@m3tr0'
 groups = 'REDE_METRO_USUARIO'
-
-zabbix_url = 'http://agent1.puppet'
-zabbix_user = 'bindzabbixmetro'
-zabbix_pass = 'b1ndz4bb1x@m3tr0'
 
 class LDAPConn(object):
     """
@@ -892,6 +890,13 @@ Options:
 
 def main_redo():
 
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--user', help='Usuário, def.: Admin', default='Admin')
+    parser.add_argument('--password', help='Senha, def.: zabbix', default='zabbix')
+    parser.add_argument('url', help='Ex.: http://zabbix.com ou http://10.99.0.120')
+
+    args = parser.parse_args()
+
     _conf = ConfigParser.ConfigParser()
 
     _conf.add_section('ldap')
@@ -903,9 +908,9 @@ def main_redo():
     _conf.set('ldap', 'groups', groups)
 
     _conf.add_section('zabbix')
-    _conf.set('zabbix', 'server', zabbix_url)
-    _conf.set('zabbix', 'username', zabbix_user)
-    _conf.set('zabbix', 'password', zabbix_pass)
+    _conf.set('zabbix', 'server', args.url)
+    _conf.set('zabbix', 'username', args.user)
+    _conf.set('zabbix', 'password', args.password)
 
     _conf.add_section('openldap')
     _conf.set('openldap', 'type', 'posix')
