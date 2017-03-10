@@ -609,9 +609,11 @@ class ZabbixConn(object):
 
         zabbix_all_users = self.get_users()
 
+        user_opt = {'type': 0}
         for eachGroup in ldap_groups:
             ldap_users = ldap_conn.get_group_members(eachGroup)
-
+            user_opt['type'] += 1
+            
             # Do nothing if LDAP group contains no users and "--delete-orphans" is not specified
             if not ldap_users and not deleteorphans:
                 continue
