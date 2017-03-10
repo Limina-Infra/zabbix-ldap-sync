@@ -38,7 +38,17 @@ import ldap
 import ldap.filter
 from pyzabbix import ZabbixAPI, ZabbixAPIException
 from docopt import docopt
+import StringIO
 
+uri = 'ldap://10.51.47.126:389/'
+base = 'cn=PERFIS,dc=network,dc=ctbc'
+bind_user = 'cn=bindzabbixmetro,ou=ESPECIAL,cn=Users,dc=network,dc=ctbc'
+bind_pass = 'b1ndz4bb1x@m3tr0'
+groups = 'REDE_METRO_USUARIO'
+
+zabbix_url = 'http://agent1.puppet'
+zabbix_user = 'bindzabbixmetro'
+zabbix_pass = 'b1ndz4bb1x@m3tr0'
 
 class LDAPConn(object):
     """
@@ -880,5 +890,105 @@ Options:
                            config.media_description,
                            config.media_opt)
 
+def main_redo():
+
+    _conf = ConfigParser.ConfigParser()
+
+    _conf.add_section('ldap')
+    _conf.set('ldap', 'type', 'activedirectory')
+    _conf.set('ldap', 'uri', uri)
+    _conf.set('ldap', 'base', base)
+    _conf.set('ldap', 'binduser', bind_user)
+    _conf.set('ldap', 'bindpass', bind_pass)
+    _conf.set('ldap', 'groups', groups)
+
+    _conf.add_section('zabbix')
+    _conf.set('zabbix', 'server', zabbix_url)
+    _conf.set('zabbix', 'username', zabbix_user)
+    _conf.set('zabbix', 'password', zabbix_pass)
+
+    _conf.add_section('openldap')
+    _conf.set('openldap', 'type', 'posix')
+    _conf.set('openldap', 'filtergroup', '')
+    _conf.set('openldap', 'filteruser', '')
+    _conf.set('openldap', 'groupattribute', '')
+    _conf.set('openldap', 'userattribute', '')
+
+    _conf.add_section('ad')
+    _conf.set('ad', 'filtergroup', '(&(objectClass=orclGroup)(cn=%s))')
+    _conf.set('ad', 'filteruser', '(objectClass=person)')
+    _conf.set('ad', 'filterdisabled', '(objectClass=person)')
+    _conf.set('ad', 'filtermemberof', '(objectClass=person)')
+    _conf.set('ad', 'groupattribute', 'uniquemember')
+    _conf.set('ad', 'userattribute', 'uid')
+
+    output = StringIO.StringIO()
+    _conf.write(output)
+    output.seek(0)
+
+    config = ZabbixLDAPConf(output)
+    config.load_config()
+
+    output.close()
+
+    # set up AD differences, if necessary
+    global active_directory
+    global openldap_type
+    global group_filter
+    global disabled_filter
+    global user_filter
+    global memberof_filter
+    global group_member_attribute
+    global uid_attribute
+    global lowercase
+    global skipdisabled
+    global deleteorphans
+    global recursive
+    lowercase = True
+    skipdisabled = True
+    deleteorphans = False
+    nocheckcertificate = True
+    recursive = False
+    verbose = False
+    if config.ldap_type == 'activedirectory':
+        active_directory = "true"
+        group_filter = config.ad_filtergroup
+        user_filter = config.ad_filteruser
+        disabled_filter = config.ad_filterdisabled
+        memberof_filter = config.ad_filtermemberof
+        group_member_attribute = config.ad_groupattribute
+        uid_attribute = config.ad_userattribute
+    else:
+        active_directory = None
+        openldap_type = config.openldap_type
+        group_filter = config.openldap_filtergroup
+        user_filter = config.openldap_filteruser
+        group_member_attribute = config.openldap_groupattribute
+        uid_attribute = config.openldap_userattribute
+
+    wildcard_search = False
+    if wildcard_search:
+        config.set_groups_with_wildcard()
+
+    if nocheckcertificate:
+        from requests.packages.urllib3 import disable_warnings
+        disable_warnings()
+
+    zabbix_conn = ZabbixConn(config.zbx_server, config.zbx_username, config.zbx_password)
+    if verbose:
+        zabbix_conn.verbose()
+    zabbix_conn.connect(nocheckcertificate)
+
+    zabbix_conn.create_missing_groups(config.ldap_groups)
+    zabbix_conn.sync_users(config.ldap_uri,
+                           config.ldap_base,
+                           config.ldap_groups,
+                           config.ldap_user,
+                           config.ldap_pass,
+                           config.ldap_media,
+                           config.user_opt,
+                           config.media_description,
+                           config.media_opt)
+
 if __name__ == '__main__':
-    main()
+    main_redo()
