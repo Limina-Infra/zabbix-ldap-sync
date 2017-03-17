@@ -954,7 +954,7 @@ def main_redo():
     global recursive
     lowercase = True
     skipdisabled = True
-    deleteorphans = False
+    deleteorphans = True
     nocheckcertificate = True
     recursive = False
     verbose = False
